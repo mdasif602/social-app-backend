@@ -1,4 +1,4 @@
-const {Schema, model} = require("mongoose")
+const {Schema, model, default: mongoose} = require("mongoose")
 
 const UserSchema = new Schema({
     username : {
@@ -15,7 +15,23 @@ const UserSchema = new Schema({
     password : {
         type : String,
         required : true
-    }
+    },
+    bio : {
+        type : String,
+        default : ""
+    },
+    profile_pic : {
+        type : String,
+        default : ""
+    },
+    followers : [{
+        type : mongoose.Schema.ObjectId, 
+        ref : "user"
+    }],
+    followings : [{
+        type : mongoose.Schema.ObjectId,
+        ref : "user"
+    }]
 })
 
 const User = model('user', UserSchema)

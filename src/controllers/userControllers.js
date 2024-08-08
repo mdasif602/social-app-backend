@@ -18,6 +18,16 @@ exports.userSignup = async (request, response) => {
         result: {},
       });
     }
+    const validEmail = validationHelper.validEmail(request.body.email)
+    // console.log(validEmail)
+    if (!validEmail) {
+        return response.json({
+            success: 0,
+            status: app_constant.BAD_REQUEST,
+            message: "Enter a valid Email",
+            result: {},
+        })
+    }
     // if all the filleds are filled then..
     const addUser = await userService.userSignUp(request.body);
 
@@ -65,6 +75,36 @@ exports.userLogin = async (request, response) => {
   }
 };
 
+
+exports.userProfile = async (request, response) => {
+    try {
+         console.log(request.user)
+         
+         const required_fields = ['id']
+         const validation = validationHelper.validation(required_fields, request.params)
+
+         if (Object.keys(validation).length) {
+            return response.json({
+              success: 0,
+              status_code: app_constant.BAD_REQUEST,
+              message: validation,
+              result: {},
+            });
+          }
+
+          const getUser = await userService.userProfile(request.params)
+      
+          return response.json(getUser);
+    } catch (error) {
+        console.log(error);
+        response.json({
+        success: 0,
+        status_code: app_constant.INTERNAL_SERVER_ERROR,
+        message: error.message,
+        result: {},
+        });
+    }
+}
 
 
 // const userService = require("../service/userService")
