@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken")
 require("dotenv").config()
 const validationHelper = require("../helpers/validation");
 const UserModel = require("../models/userModel")
-
+const constants = require("../constants/app.json")
 
 exports.verifyToken = async (request, response, next) => {
     // console.log(request.headers);  
@@ -25,6 +25,12 @@ exports.verifyToken = async (request, response, next) => {
     }
     const {id} = verify_token
     const user = await UserModel.findById(id)
+    if (!user) {
+        return res.json({ 
+            success: 0, 
+            status: constants.BAD_REQUEST, 
+            message: 'User does not exist!', result: {} })
+    }
     request.user = user
     next()
     
