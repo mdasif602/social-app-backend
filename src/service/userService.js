@@ -4,6 +4,8 @@ const bcrypt = require("bcrypt");
 const app_constant = require("../constants/app.json");
 const jwt = require("jsonwebtoken");
 require("dotenv").config()
+const cloudinary = require("../helpers/cloudinary")
+const fs = require("fs")
 
 exports.userSignUp = async (data) => {
     //for Unique Email check
@@ -371,5 +373,44 @@ exports.getFollowingsList = async (user_data, data) => {
         success: 0,
         status: app_constant.INTERNAL_SERVER_ERROR,
         message: 'Internal server error!', result: {} 
+    }
+}
+
+// Service for updating profile photo using Cloudinary
+exports.updateProfilePic = async (data, user_data) => {
+       // console.log(data);
+    const { _id } = user_data
+    const { file } = data
+    // console.log(_id);
+    const file_url = await cloudinary.uploader.upload(file.path)
+    // console.log(file_url);
+
+    const upload_profilePic = await userModel.updateOne({ _id: _id }, {
+        $set: { profile_pic: file_url.secure_url }
+      })
+
+    if (upload_profilePic) {
+        const filePath = file.path
+        // console.log(filePath);
+
+        fs.unlink(file.path, (err) => {
+            if (err) {
+                console.error('Error deleting the file:', err);
+            }
+            // console.log('File deleted successfully!');
+        })
+        return {
+            success: 1,
+            status: app_constant.SUCCESS,
+            message: "Profile Added/Updated added successfully",
+            result: file_url,
+        }
+
+    }
+
+    return {
+        success: 0,
+        status: app_constant.INTERNAL_SERVER_ERROR,
+        message: 'Internal server error!', result: {}
     }
 }

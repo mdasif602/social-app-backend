@@ -1,6 +1,7 @@
 const app_constant = require("../constants/app.json");
 const userService = require("../service/userService");
 const validationHelper = require("../helpers/validation");
+const { request, response } = require("express");
 
 exports.userSignup = async (request, response) => {
   try {
@@ -190,14 +191,45 @@ exports.getFollowersList = async (request, response) => {
         }
 }
 
-  exports.getFollowingsList = async (request, response) => {
-         try {
-             const get_users = await userService.getFollowingsList(request.user, request.query)
-             return response.json(get_users)
-         } catch (error) {
-             console.log(error)
-         }
+exports.getFollowingsList = async (request, response) => {
+        try {
+            const get_users = await userService.getFollowingsList(request.user, request.query)
+            return response.json(get_users)
+        } catch (error) {
+          console.log(error);
+          response.json({
+            success: 0,
+            status_code: app_constant.INTERNAL_SERVER_ERROR,
+            message: error.message,
+            result: {},
+          });
+        }
+}
+
+exports.updateProfilePic = async (request, response) => {
+  try {
+    if (!request.file) {
+        response.json({
+            success: 0,
+            status_code: app_constant.INTERNAL_SERVER_ERROR,
+            message: "Please upload the file",
+            result: {},
+          });
+    }
+    request.body.file = request.file
+    const upload_profilePic = await userService.updateProfilePic(request.body, request.user)
+    return response.json(upload_profilePic)
+  } catch (error) {
+    console.log(error);
+    response.json({
+      success: 0,
+      status_code: app_constant.INTERNAL_SERVER_ERROR,
+      message: error.message,
+      result: {},
+    });
+     
   }
+}
 
 
 // const userService = require("../service/userService")
