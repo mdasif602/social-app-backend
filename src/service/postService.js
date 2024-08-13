@@ -3,7 +3,6 @@ const app_constant = require("../constants/app.json");
 require("dotenv").config()
 const cloudinary = require("../helpers/cloudinary")
 const postModel = require("../models/postModel")
-const fs = require("fs")
 
 exports.postUpload = async (data, user_data) => {
     // console.log(data);
@@ -22,17 +21,64 @@ exports.postUpload = async (data, user_data) => {
     if (upload_post) {
         const filePath = file.path
         // console.log(filePath);
-
-        fs.unlink(file.path, (err) => {
-            if (err) {
-                console.error('Error deleting the file:', err);
-            }
-            // console.log('File deleted successfully!');
-        })
         return {
             success: 1,
             status: app_constant.SUCCESS,
             message: "post added successfully",
+            result: file_url,
+        }
+
+    }
+
+    return {
+        success: 0,
+        status: app_constant.INTERNAL_SERVER_ERROR,
+        message: 'Internal server error!', result: {}
+    }
+
+}
+
+exports.updatePost = async (data, user_data) => {
+    // console.log(data);
+    const { post_id } = data
+    const { file } = data
+    const caption = data.caption ? data.caption : ""
+    // console.log(_id);
+    const post_data = await postModel.findOne({_id : post_id})
+    if (!post_data) {
+        return {
+            success: 0,
+            status: app_constant.BAD_REQUEST,
+            message: 'Post does not exist', result: {}
+        }
+    }
+    // console.log(post_data);
+    // console.log(user_data);
+    
+    
+    // console.log(post_data.user_id, user_data._id);
+    
+    if (post_data.user_id.toString() != user_data._id.toString()) {
+        return {
+            success: 0,
+            status: app_constant.BAD_REQUEST,
+            message: 'You cannnot update another post', result: {}
+        }
+    }
+    const file_url = await cloudinary.uploader.upload(file.path)
+    // console.log(file_url);
+
+    const update_post = await postModel.updateOne(
+        {_id : post_id}, 
+        {$set : {file_url : file_url.secure_url, caption}})
+
+    if (update_post) {
+        // const filePath = file.path
+        // console.log(filePath);
+        return {
+            success: 1,
+            status: app_constant.SUCCESS,
+            message: "post updated successfully",
             result: file_url,
         }
 
@@ -120,4 +166,95 @@ exports.getPostList = async (data) => {
         result: {}
     }
 
+}
+
+
+exports.likePost = async (data, user_data) => {
+    const {_id} = user_data
+    const {post_id} = data
+
+    const post_data = await postModel.findOne({ _id: post_id })
+    if (!post_data) {
+        return { success: 0, status: app_constant.BAD_REQUEST, message: 'Post does not exist!', result: {} }
+    }
+
+    const like_check = post_data.likes.includes(_id)
+    if (like_check) {
+        return { 
+            success: 0,
+            status: app_constant.BAD_REQUEST, 
+            message: 'Post is already liked!', 
+            result: {} }
+    }
+
+    post_data.likes.push(_id)
+
+    const update_post_data  = await postModel.updateOne(
+        { _id: post_id },
+        { $set: { likes: post_data.likes } })
+           
+
+    if (update_post_data) {
+        return { 
+            success: 1, 
+            status: app_constant.SUCCESS, 
+            message: 'Post liked successfully!', 
+            result: {} 
+        };
+    }
+
+    return { 
+        success: 0, 
+        status: app_constant.INTERNAL_SERVER_ERROR, 
+        message: 'Internal server error!', 
+        result: {} 
+    }
+}
+
+exports.unlikePost = async (data, user_data) => {
+    const {_id} = user_data
+    const {post_id} = data
+
+    const post_data = await postModel.findOne({ _id: post_id })
+    if (!post_data) {
+        return { 
+            success: 0, 
+            status: app_constant.BAD_REQUEST, 
+            message: 'Post does not exist!', 
+            result: {} }
+    }
+
+    const like_check = post_data.likes.includes(_id)
+    if (!like_check) {
+        return { 
+            success: 0,
+            status: app_constant.BAD_REQUEST, 
+            message: 'Post is not liked!', 
+            result: {} }
+    }
+
+    // post_data.likes.push(_id)
+    const filter_existing_likes = post_data.likes.filter( (element)=> element.toString() !== _id.toString())
+    // const filter_followers = user_data.followers.filter((element) => element.toString() !== auth_user_id.toString())
+
+    const update_post_data  = await postModel.updateOne(
+        { _id: post_id },
+        { $set: { likes: filter_existing_likes } })
+           
+
+    if (update_post_data) {
+        return { 
+            success: 1, 
+            status: app_constant.SUCCESS, 
+            message: 'Post unliked successfully!', 
+            result: {} 
+        };
+    }
+
+    return { 
+        success: 0, 
+        status: app_constant.INTERNAL_SERVER_ERROR, 
+        message: 'Internal server error!', 
+        result: {} 
+    }
 }

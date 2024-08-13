@@ -1,4 +1,4 @@
-const {Schema, model} = require('mongoose')
+const {Schema, model, default: mongoose} = require('mongoose')
 
 
 const commentSchema = new Schema({
@@ -11,14 +11,24 @@ const commentSchema = new Schema({
         ref : "user",
         required : true
     },
+    post_id : {
+        type : mongoose.Schema.ObjectId,
+        ref : "post",
+        required : true
+    },
     likes : [{
         type : mongoose.Schema.ObjectId, 
         ref : "user",
         default : []
     }],
+    parent_id : {
+        type : mongoose.Schema.ObjectId,
+        ref : "comment",
+        default : null
+    }
     
 }, {timestamps : true})
 
 
-const Comment = model('post', commentSchema)
+const Comment = model('comment', commentSchema)
 module.exports = Comment
