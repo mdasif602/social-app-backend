@@ -7,6 +7,7 @@ const upload = multer({ dest: 'uploads/' })
 
 postRoute.post("/upload", middleware.verifyToken, upload.single('file'), postControllers.uploadPost)
 postRoute.get("/list", middleware.verifyToken, postControllers.getPostList)
+postRoute.get("/one", middleware.verifyToken, postControllers.getOnePost)
 postRoute.post("/update", middleware.verifyToken, upload.single('file'), postControllers.updatePost)
 postRoute.post("/like", middleware.verifyToken, postControllers.likePost)
 postRoute.post("/unlike", middleware.verifyToken, postControllers.unlikePost)
