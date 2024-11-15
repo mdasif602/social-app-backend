@@ -52,6 +52,7 @@ exports.updatePost = async (request, response) => {
           result: {},
         });
       }
+      
       if (!request.file) {
           response.json({
               success: 0,

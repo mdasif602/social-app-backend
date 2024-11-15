@@ -25,6 +25,12 @@ exports.verifyToken = async (request, response, next) => {
     }
     const {id} = verify_token
     const user = await UserModel.findById(id)
+    if (token !== user.token) {
+        return response.json({ 
+            success: 0, 
+            status: constants.BAD_REQUEST, 
+            message: 'Invalid Token!', result: {} })
+    }
     if (!user) {
         return res.json({ 
             success: 0, 

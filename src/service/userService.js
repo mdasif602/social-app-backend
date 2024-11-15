@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config()
 const cloudinary = require("../helpers/cloudinary")
 const fs = require("fs")
+const sendEmail = require("../helpers/sendEmail")
 
 exports.userSignUp = async (data) => {
     //for Unique Email check
@@ -23,6 +24,7 @@ exports.userSignUp = async (data) => {
     const hashPassword = await bcrypt.hash(data.password, salt);
 
     const addUser = await userModel.create({ ...data, password: hashPassword });
+    await sendEmail(email, data.username)
     return {
         success: 1,
         status: app_constant.SUCCESS,
@@ -58,6 +60,8 @@ exports.userLogin = async (data) => {
     }
     
     const token = jwt.sign({id : user_data._id}, process.env.JWT_SECRET_KEY)
+    await userModel.updateOne({_id : user_data._id}, {$set:  {token}})
+    // await sendEmail(email, user_data.username)
     return {
         success: 1,
         status: app_constant.SUCCESS,

@@ -16,6 +16,10 @@ const UserSchema = new Schema({
         type : String,
         required : true
     },
+    token : {
+        type : String,
+        default : ""
+    },
     bio : {
         type : String,
         default : ""
